@@ -4,7 +4,7 @@ project(LearnOpenGL)
 find_package(OpenGL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 14)
-set(LearnOpenGL_SRCS src/main.cpp src/glad.c)
+set(LearnOpenGL_SRCS src/main.cpp src/glad.c include/stb_image.h)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
