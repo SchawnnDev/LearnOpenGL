@@ -1,4 +1,3 @@
-vendor/
 cmake-build-debug/
 build/
 .idea
