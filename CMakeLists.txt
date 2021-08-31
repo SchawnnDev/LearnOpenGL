@@ -16,6 +16,6 @@ add_subdirectory(vendor/glm)
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 add_executable(LearnOpenGL ${LearnOpenGL_SRCS})
-target_link_libraries(LearnOpenGL ${OPENGL_LIBRARIES} glfw)
+target_link_libraries(LearnOpenGL ${OPENGL_LIBRARIES} glfw glm::glm)
 
 target_include_directories(LearnOpenGL PUBLIC include ${OPENGL_INCLUDE_DIRS})

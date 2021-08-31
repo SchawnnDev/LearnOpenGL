@@ -6,6 +6,7 @@
 #define LEARNOPENGL_SHADER_H
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
+#include <glm/glm.hpp>
 
 #include <string>
 #include <fstream>
@@ -59,6 +60,7 @@ public:
         glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+            glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, vertex, GL_DEBUG_SEVERITY_HIGH, -1, infoLog);
             std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
         };
 
@@ -70,6 +72,7 @@ public:
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+            glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, vertex, GL_DEBUG_SEVERITY_HIGH, -1, infoLog);
             std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
         };
 
@@ -109,6 +112,21 @@ public:
     void setFloat(const std::string &name, float value) const
     {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+    }
+
+    void setMat2(const std::string &name, const glm::mat2 &mat) const
+    {
+        glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void setMat3(const std::string &name, const glm::mat3 &mat) const
+    {
+        glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+    void setMat4(const std::string &name, const glm::mat4 &mat) const
+    {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 };
 
