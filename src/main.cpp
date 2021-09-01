@@ -20,6 +20,8 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void processInput(GLFWwindow *window);
 
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
 void GLAPIENTRY
 MessageCallback(GLenum source,
                 GLenum type,
@@ -29,9 +31,16 @@ MessageCallback(GLenum source,
                 const GLchar *message,
                 const void *userParam);
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+float yaw = 0.0f;
+float pitch = 0.0f;
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
+bool firstMouse = true;
 
 int main() {
 
@@ -57,6 +66,8 @@ int main() {
     }
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // During init, enable debug output
     glEnable(GL_DEBUG_OUTPUT);
@@ -82,60 +93,60 @@ int main() {
     }; */
 
     float vertices[] = {
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
 
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
 
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
 
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
 
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
     };
     // more cubes
     glm::vec3 cubePositions[] = {
-            glm::vec3( 0.0f,  0.0f,  0.0f),
-            glm::vec3( 2.0f,  5.0f, -15.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(2.0f, 5.0f, -15.0f),
             glm::vec3(-1.5f, -2.2f, -2.5f),
             glm::vec3(-3.8f, -2.0f, -12.3f),
-            glm::vec3( 2.4f, -0.4f, -3.5f),
-            glm::vec3(-1.7f,  3.0f, -7.5f),
-            glm::vec3( 1.3f, -2.0f, -2.5f),
-            glm::vec3( 1.5f,  2.0f, -2.5f),
-            glm::vec3( 1.5f,  0.2f, -1.5f),
-            glm::vec3(-1.3f,  1.0f, -1.5f)
+            glm::vec3(2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f, 3.0f, -7.5f),
+            glm::vec3(1.3f, -2.0f, -2.5f),
+            glm::vec3(1.5f, 2.0f, -2.5f),
+            glm::vec3(1.5f, 0.2f, -1.5f),
+            glm::vec3(-1.3f, 1.0f, -1.5f)
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -186,6 +197,11 @@ int main() {
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
+
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         /* Inputs */
         processInput(window);
 
@@ -210,22 +226,22 @@ int main() {
 
         // position
         // camera direction
-      /*  glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+        /*  glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+          glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
 
-        // right axis
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 1.0f);
-        glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+          // right axis
+          glm::vec3 up = glm::vec3(0.0f, 1.0f, 1.0f);
+          glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 
-        // up axis
-        glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+          // up axis
+          glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-    */
-        view = glm::lookAt(cameraPos, cameraFront, cameraUp);
+          const float radius = 10.0f;
+          float camX = sin(glfwGetTime()) * radius;
+          float camZ = cos(glfwGetTime()) * radius;
+          view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+      */
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         // rotate:
         //model = glm::rotate(model, (float) glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
@@ -239,13 +255,12 @@ int main() {
 
         // render boxes
         glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < 10; i++)
-        {
+        for (unsigned int i = 0; i < 10; i++) {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * (float) i;
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            model = glm::rotate(model, (float) glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             ourShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -338,16 +353,49 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 void processInput(GLFWwindow *window) {
-    const float cameraSpeed = 0.05f;
-
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+
+    float cameraSpeed = 2.5f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraFront;
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
 }
